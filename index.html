@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset=utf-8 />
+    <title>Lab 02 Starter</title>
+    <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.0.3/dist/leaflet.css" />
+    <!-- link to leaflet css stylesheet-->
+    <link href="https://fonts.googleapis.com/css?family=Noto+Sans" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css?family=Lora" rel="stylesheet">
+    <!-- link to Noto and Lora font stylesheets-->
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: whitesmoke;
+            font-family: "Noto Sans", sans-serif;
+            color: #3d3d3d;
+        }
+        
+        section {
+            width: 960px;
+            margin: 20px auto;
+        }
+        
+        h1 {
+            width: 960px;
+            margin: 20px auto;
+            font-family: "Lora", serif;
+            letter-spacing: .04em;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        h2 {
+            font-family: "Lora", serif;
+            letter-spacing: .04em;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        p {
+            font-size: 1em;
+            line-height: 1.5em;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        a {
+            color: #005daa;
+            font-weight: bold;
+            text-decoration: none;
+        }
+        
+        a:hover {
+            text-decoration: underline;
+        }
+        
+        ul {
+            padding-left: 20px;
+        }
+        
+        li {
+            margin: 10px 0
+        }
+        
+        #map {
+            width: 960px;
+            height: 540px;
+            margin: 10px auto;
+            border: 2px solid #d3d3d3;
+        }
+        
+        .leaflet-tooltip {
+            max-width: 140px;
+        }
+        /* leaflet css class established to hard wrap label string in tooltip at 140px this rule gets overridden by a subsequent .leaflet-tooltip max-width of margin rule*/
+        
+        .legend {
+            padding: 6px 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            width: 160px;
+        }
+        
+        .legend h3 {
+            font-size: 1.1em;
+            font-weight: bold;
+            color: #001323;
+            margin: 0 0 10px 0;
+        }
+        
+        .legend span {
+            width: 20px;
+            height: 20px;
+            float: left;
+            margin: 0 10px 4px 0;
+            border-style: solid;
+            border-color: #636363;
+            border-width: 1px
+        }
+        
+        .legend label {
+            font-size: 1.2em;
+        }
+        
+        .legend label:after {
+            content: '  ';
+            display: block;
+            clear: both;
+        }
+        /* .legend style classesthat modify style within the elements within the div with class='legend'
+        /*     .inf {
+            width: 180px;
+            height: 94px;
+            padding: 6px 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+      */
+        /* initial CSS rule I created when creating info panel on my own */
+        
+        .info {
+            padding: 6px 8px;
+            font-size: 1em;
+            background: rgba(255, 255, 255, 0.8);
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2);
+            border-radius: 5px;
+            text-align: right;
+        }
+        
+        .info h3 {
+            margin: 0;
+        }
+        /*styling added to the info panel (div with class= 'info')*/
+        
+        #ui-controls {
+            width: 960px;
+            margin: 10px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        #ui-controls label {
+            font-size: 1.4em;
+            display: flex;
+            align-items: center;
+            justify-content: center
+        }
+        
+        #ui-controls label:after {
+            content: '';
+            display: block;
+        }
+        
+        #ui-controls select {
+            font-size: 1.2em;
+            margin: 10px 0 10px;
+            padding: 0;
+        }
+        /*CSS style rules that modify the select element and the labels within*/
+        
+        .leaflet-tooltip {
+            min-width: 110px;
+            max-width: 160px;
+            white-space: normal;
+        }
+        /* CSS style rule that targets the leaflet tooltip bound to each layer. adjusts the min and max width settings and allows for a wrap of text instead of overflowing.*/
+    </style>
+</head>
+
+<body>
+
+    <h1>Vacant Homes for Sale and Rent by Kentucky County</h1>
+
+    <div id='ui-controls'>
+        <label>Choose a data attribute:</label>
+        <select name="vacant" id="vacant">
+            <option value="VACANT" selected>vacant</option>
+            <option value="VACANT_FOR">vacant for rent</option>
+            <option value="VACANT_FO2">vacant for sale</option>
+        </select>
+    </div>
+    <!--* a div that serves as the select menu that dictates what the user wants to map -->
+    <div id='map'></div>
+
+    <section>
+        <h2>&mdash; Select the attribute to map and mouseover each county for statistics &mdash;</h2>
+
+
+
+
+        <p>Map authored by Lee Moser, MAP 673 Spring 2017</p>
+
+    </section>
+
+
+    <script src="http://code.jquery.com/jquery-3.1.1.min.js"></script>
+    <script src="https://unpkg.com/leaflet@1.0.3/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/simple-statistics@2.2.0/dist/simple-statistics.min.js"></script>
+    <!-- external script references for JQuery, Leaflet, and Simple Statistics-->
+    <script>
+        var labels = {
+                "VACANT": "% vacant homes",
+                "VACANT_FOR": "% vacant homes for rent",
+                "VACANT_FO2": "% vacant homes for sale",
+                "TOTAL": "Total homes"
+            }
+            //an object with var name of label that utilizes label[attributeValue] within the tooltip and legend to dynamically update teh text based on the user's selection from the dropdown select menu//
+        var options = {
+                //            center: [37.8, -85.8],
+                //            zoom: 7.4,
+                scrollWheelZoom: false,
+                zoomSnap: .1,
+                dragging: false,
+                zoomControl: false
+            }
+            // initial map options, disabling pan/zoom
+            // create Leaflet map and apply options
+        var map = L.map('map', options);
+
+        // set global variables mapped attribute, and normalizing attribute
+        var attributeValue = "VACANT",
+            normValue = "TOTAL";
+        var info = 0;
+
+        // AJAX call to load county-level data
+        $.getJSON("data/ky_counties_housing.json", function (data) {
+
+            // draw the map using GeoJSON data
+            drawInfo();
+            //calls drawInfo(), which creates a blank info panel with defined styles and no information present until mouseover
+            drawMap(data);
+            //calls drawMap. drawMap creates the initial data layer and adds to the map. The data layer is then saved to the variable dataLayer for later use as an argument to be passed to other functions.
+        });
+
+        function drawMap(data) {
+
+            // create Leaflet data layer and add to map
+            var dataLayer = L.geoJson(data, {
+                style: function (feature) {
+                    // style counties with initial default path options
+                    return {
+                        color: '#636363',
+                        weight: 2,
+                        fillOpacity: 1,
+                        fillColor: '#1f78b4'
+                    };
+                }
+            }).addTo(map);
+            map.fitBounds(dataLayer.getBounds());
+            dataLayer.on('mouseover', function () {
+                $(".info").show();
+            });
+            dataLayer.on('mouseout', function () {
+                $(".info").hide();
+            });
+            // draw the legend
+            drawLegend();
+            //calls the drawLegend function once
+            updateMap(dataLayer);
+            //a call of the updateMap function that fires everytime the dropdown menu is selected. Within this function call, the legend content is dynamically generated each time the drop down menu is toggled by the user.
+            addUi(dataLayer);
+            // function to query the setting of the selection dropdown with a listener that changes the value of attributeValue each time the user interacts with the select element.
+            dataLayer.eachLayer(function (layer) {
+                layer.on('mouseover', function (layer) {
+                    updateInfo(this);
+                    //                var selectedLayer = event.layer;
+                    //                var prop = selectedLayer.feature.properties;
+                    //from initial method of creating info panel
+                    this.setStyle({
+                        color: "yellow"
+
+                    }).bringToFront();
+                    updateInfo(this);
+
+                   
+                    dataLayer.on("mouseout", function (event) {
+                        //                    var selectedLayer = event.layer;
+                        // from initial solo creation
+                        this.setStyle({
+                            color: '#636363'
+                        });
+                        //creates an event listener that reverts the color of a layer's path stroke to the original value
+                        
+                    });
+                });
+            });
+
+        } //end draw map
+
+        function updateMap(dataLayer) {
+            // get the class breaks for the initial data attribute
+            var breaks = getClassBreaks(dataLayer);
+
+            // loop through each county layer
+            dataLayer.eachLayer(function (layer) {
+
+                // shortcut reference for layer properties
+                var props = layer.feature.properties;
+
+                // set the fill color of layer based on its normalized data value
+                layer.setStyle({
+                    fillColor: getColor(props[attributeValue] / props[normValue], breaks)
+                });
+
+                // assemble string sequence of info for tooltip
+                var tooltipInfo = "<b>" + props["NAME"] + " County</b></br>" +
+                    labels[attributeValue] + ": " + ((props[attributeValue] /
+                        props[normValue]) * 100).toLocaleString() + "%"
+
+                // bind a tooltip to layer with county-specific information
+                layer.bindTooltip(tooltipInfo, {
+                    sticky: true
+                });
+                updateLegend(breaks);
+                //calls the updateLegend function that updates the legend content based on the user selection
+            });
+        } //end updateMap function
+
+        function addUi(dataLayer) {
+            $('select[name="vacant"]').change(function () {
+                attributeValue = $(this).val();
+                console.log(attributeValue);
+                //                $("div.legend").remove();
+                //alternate JQuery solution to remove initial Legend prior to adding new legend during updateMap call
+                updateMap(dataLayer);
+
+                // a function that listens to the user selection in the dropdown menu and calls updateMap once a new value has been assigned to attributeValue.
+            });
+        } //end addUi function
+
+        function getClassBreaks(dataLayer) {
+
+            // create empty Array for storing values
+            var values = [];
+
+            // loop through all the counties
+            dataLayer.eachLayer(function (layer) {
+                var value = layer.feature.properties[attributeValue] / layer.feature.properties[normValue];
+                values.push(value); // push the normalized value for each layer into the Array
+            });
+
+            // determine similar clusters
+            var clusters = ss.ckmeans(values, 5);
+
+            // create an array of the lowest value within each cluster
+            var breaks = clusters.map(function (cluster) {
+                return [cluster[0], cluster.pop()];
+            });
+
+            //return array of arrays, e.g., [[0.24,0.25], [0.26, 0.37], etc]
+            return breaks;
+
+        } //end getClassBreaks
+
+        function getColor(d, breaks) {
+            // function accepts a single normalized data attribute value
+            // and uses a series of conditional statements to determine which
+            // which color value to return to return to the function caller
+
+            if (d <= breaks[0][1]) {
+                return '#f1eef6';
+            } else if (d <= breaks[1][1]) {
+                return '#bdc9e1';
+            } else if (d <= breaks[2][1]) {
+                return '#74a9cf';
+            } else if (d <= breaks[3][1]) {
+                return '#2b8cbe'
+            } else if (d <= breaks[4][1]) {
+                return '#045a8d'
+            }
+        } //end getColor
+
+        //        function drawLegend(breaks) {
+        //
+        //            // create a new Leaflet control object, and position it top left
+        //            var legendControl = L.control({
+        //                position: 'topleft'
+        //            });
+        //
+        //            // when the legend is added to the map
+        //            legendControl.onAdd = function (map) {
+        //
+        //                // create a div element with an class attribute of legend
+        //                var div = L.DomUtil.create('div', 'legend');
+        //
+        //                // return the div to the method
+        //                return div;
+        //
+        //            };
+        //
+        //            // add the empty legend div to the map
+        //            legendControl.addTo(map);
+        //
+        //            // select the legend, add a title, begin an unordered list and assign to a variable
+        //            var legend = $('.legend').html("<h3>Homes " + $("#occupied option:selected" ).text() +"</h3>");
+        //            
+        //            //JQuery function to get the text value of the selected option in the drop down menu and use it as part of the text string for the Legend title.
+        //
+        //            // loop through the Array of classification break values
+        //            for (var i = 0; i <= breaks.length - 1; i++) {
+        //
+        //                // get the color of the each class group
+        //                var color = getColor(breaks[i][0], breaks);
+        //
+        //                // store a reference to the low/high values of each classification range, rounded
+        //                var lowVal = (breaks[i][0] * 100).toFixed(2),
+        //                    highVal = (breaks[i][1] * 100).toFixed(2);
+        //
+        //                // select the legend and append the HTML elements and styles
+        //                // to build the legend units, a span element for each color
+        //                // and the associated number values
+        //                legend.append(
+        //                    '<span style="background:' + color + '"></span> ' +
+        //                    '<label>' + lowVal + ' &mdash; ' + highVal + '%</label>');
+        //            }
+        //        } // end original drawLegend
+        function drawLegend() {
+
+            var legendControl = L.control({
+                position: 'topleft'
+            });
+
+            legendControl.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'legend');
+
+                return div;
+
+            };
+
+            legendControl.addTo(map);
+        } //a function that simply draws teh container that will be the legend. this is fired in drawMap(), because it only needs to be fired once. The information within is dynamically updated by updateLegend(breaks) function within the updateMap(dataLayer) function
+
+        function updateLegend(breaks) {
+
+            var legend = $('.legend').html("<h3>" + labels[attributeValue] + "</h3>");
+
+            for (var i = 0; i <= breaks.length - 1; i++) {
+
+                var color = getColor(breaks[i][0], breaks);
+
+                var lowVal = (breaks[i][0] * 100).toFixed(2),
+                    highVal = (breaks[i][1] * 100).toFixed(2);
+
+                legend.append(
+                    '<span style="background:' + color + '"></span> ' +
+                    '<label>' + lowVal + ' &mdash; ' + highVal + '%</label>');
+            }
+
+        } // dynamically updates the content of the legend container upon being called in updateMap(dataLayer). each time the user changes the select menu setting, this is invoked
+
+        function drawInfo() {
+
+            var info = L.control({
+                position: 'topright'
+            });
+
+            info.onAdd = function (map) {
+
+                var div = L.DomUtil.create('div', 'info');
+
+                return div;
+
+            }
+            info.addTo(map);
+            $(".info").hide();
+        }
+        //this function draws the info pane upon initial call of drawMap(data). it is initially hidden and remains hidden until a county mouseover event occurs. it is hidden again upon mouseout of a county.
+        function updateInfo(layer) {
+
+            var props = layer.feature.properties;
+
+            var html = "<h3>" + props['NAME'] + " County</h3>" +
+                "total # vacant homes: <b>" + props["VACANT"] + "</b><br>" +
+                "# vacant homes for rent: <b>" + props["VACANT_FOR"] + "</b><br>" +
+                "# vacant homes for sale: <b>" + props["VACANT_FO2"] + "</b><br>" +
+                "Total # homes: <b>" + props["TOTAL"] + "</b>"
+
+            $(".info").html(html);
+        }
+        //this function calculates the info pane content and adds it to the panel upon mouseover of each county
+    </script>
+
+</body>
+
+</html>
